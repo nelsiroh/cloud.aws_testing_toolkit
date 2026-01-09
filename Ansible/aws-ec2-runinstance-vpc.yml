@@ -1,0 +1,37 @@
+---
+- name: Ensure nginx is installed and configured
+  hosts: linux_instances
+  become: true  # Run tasks as root
+  tasks:
+    # Ensure the nginx package is installed
+    - name: Install nginx
+      ansible.builtin.yum:
+        name: nginx
+        state: present  # Ensures the package is installed
+
+    # Ensure the configuration file has the desired content
+    - name: Ensure /etc/myapp.conf has the correct settings
+      ansible.builtin.copy:
+        dest: /etc/myapp.conf
+        content: |
+          # Configuration for myapp
+          setting1=value1
+          setting2=value2
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload nginx  # Trigger a handler if the file changes
+
+    # Ensure the nginx service is running and enabled
+    - name: Ensure nginx service is running and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    # Reload nginx if the configuration file changes
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
